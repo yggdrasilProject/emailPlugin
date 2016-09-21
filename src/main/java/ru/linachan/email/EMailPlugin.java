@@ -66,7 +66,7 @@ public class EMailPlugin implements YggdrasilPlugin {
         String subject = message.getSubject();
 
         Matcher subjectMatcher = Pattern.compile(
-            "^((RE|re|Re):?\\s*)*(?<rk>\\[-[A-Z0-9]+-\\])\\s*(?<title>.*?)$"
+            "^((RE|re|Re):?\\s*)*(\\[-(?<rk>[A-Z0-9]+)-\\])\\s*(?<title>.*?)$"
         ).matcher(subject);
 
         if (subjectMatcher.matches()) {
