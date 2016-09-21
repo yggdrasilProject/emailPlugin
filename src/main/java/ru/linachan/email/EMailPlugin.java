@@ -3,11 +3,13 @@ package ru.linachan.email;
 import ru.linachan.yggdrasil.YggdrasilCore;
 import ru.linachan.yggdrasil.plugin.YggdrasilPlugin;
 import ru.linachan.yggdrasil.plugin.helpers.Plugin;
+import ru.linachan.yggdrasil.scheduler.YggdrasilTask;
 
 import javax.mail.*;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -23,15 +25,22 @@ public class EMailPlugin implements YggdrasilPlugin {
 
     @Override
     public void onInit() {
-        smtpServer = YggdrasilCore.INSTANCE.getConfig().getString("email.smtp.host", "smtp.gmail.com");
+        smtpServer = core.getConfig().getString("email.smtp.host", "smtp.gmail.com");
 
-        emailUser = YggdrasilCore.INSTANCE.getConfig().getString("email.user", "user@gmail.com");
-        emailPassword = YggdrasilCore.INSTANCE.getConfig().getString("email.password", "password");
+        emailUser = core.getConfig().getString("email.user", "user@gmail.com");
+        emailPassword = core.getConfig().getString("email.password", "password");
+
+        Integer checkDelay = core.getConfig().getInt("email.check.delay", 10);
+        Integer checkInterval = core.getConfig().getInt("email.check.interval", 120);
+
+        core.getScheduler().scheduleTask(new YggdrasilTask(
+            "EMailWatch", new EMailListener(), checkDelay, checkInterval, TimeUnit.SECONDS
+        ));
     }
 
     @Override
     public void onShutdown() {
-
+        core.getScheduler().getTask("EMailWatch").cancelTask();
     }
 
     public void registerHandler(String routingKey, EMailHandler handler) {
