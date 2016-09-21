@@ -7,11 +7,13 @@ import ru.linachan.yggdrasil.plugin.YggdrasilPluginManager;
 import ru.linachan.yggdrasil.scheduler.YggdrasilRunnable;
 
 import javax.mail.*;
+import javax.mail.search.FlagTerm;
 import java.util.Properties;
 
 public class EMailListener implements YggdrasilRunnable {
 
-    private String pop3Server;
+    private String emailServer;
+    private String emailProtocol;
 
     private String emailUser;
     private String emailPassword;
@@ -19,38 +21,41 @@ public class EMailListener implements YggdrasilRunnable {
     private static Logger logger = LoggerFactory.getLogger(EMailListener.class);
 
     public EMailListener() {
-        pop3Server = YggdrasilCore.INSTANCE.getConfig().getString("email.pop3.host", "pop.gmail.com");
+        emailServer = core.getConfig().getString("email.inbox.host", "imap.gmail.com");
+        emailProtocol = core.getConfig().getString("email.inbox.protocol", "imaps");
 
-        emailUser = YggdrasilCore.INSTANCE.getConfig().getString("email.user", "user@gmail.com");
-        emailPassword = YggdrasilCore.INSTANCE.getConfig().getString("email.password", "password");
+        emailUser = core.getConfig().getString("email.user", "user@gmail.com");
+        emailPassword = core.getConfig().getString("email.password", "password");
     }
 
     private void receiveMessages() throws MessagingException {
         Session session = Session.getDefaultInstance(new Properties());
 
-        Store store = session.getStore("pop3s");
-        store.connect(pop3Server, emailUser, emailPassword);
+        Store store = session.getStore(emailProtocol);
+        store.connect(emailServer, emailUser, emailPassword);
 
-        Folder folder = store.getFolder("inbox");
+        Folder inbox = store.getFolder("INBOX");
 
-        if (!folder.exists()) {
+        if (!inbox.exists()) {
             logger.warn("Given mailbox doesn't contain inbox folder.");
             return;
         }
 
-        folder.open(Folder.READ_ONLY);
+        inbox.open(Folder.READ_WRITE);
 
-        Message[] messages = folder.getMessages();
+        Message[] messages = inbox.search(new FlagTerm(new Flags(Flags.Flag.SEEN), false));
         if (messages.length != 0) {
             for (Message message: messages) {
                 YggdrasilCore.INSTANCE
                     .getManager(YggdrasilPluginManager.class)
                     .get(EMailPlugin.class)
                     .handleMessage(message);
+
+                inbox.setFlags(new Message[] { message }, new Flags(Flags.Flag.SEEN), true);
             }
         }
 
-        folder.close(false);
+        inbox.close(false);
         store.close();
     }
 
