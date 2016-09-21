@@ -52,7 +52,12 @@ public class EMailPlugin implements YggdrasilPlugin {
     }
 
     public void sendMessage(Message message, Address[] recipients) throws MessagingException {
-        Session session = Session.getDefaultInstance(new Properties());
+        Session session = Session.getDefaultInstance(new Properties(), new Authenticator() {
+            @Override
+            protected PasswordAuthentication getPasswordAuthentication() {
+                return new PasswordAuthentication(emailUser, emailPassword);
+            }
+        });
 
         Transport transport = session.getTransport("smtp");
         transport.connect(smtpServer, emailUser, emailPassword);
