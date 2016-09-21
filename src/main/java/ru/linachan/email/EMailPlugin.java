@@ -2,6 +2,7 @@ package ru.linachan.email;
 
 import ru.linachan.yggdrasil.YggdrasilCore;
 import ru.linachan.yggdrasil.plugin.YggdrasilPlugin;
+import ru.linachan.yggdrasil.plugin.helpers.Plugin;
 
 import javax.mail.*;
 import java.util.HashMap;
@@ -10,6 +11,7 @@ import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+@Plugin(name = "email", description = "Provides ability to send and receive E-Mails.")
 public class EMailPlugin implements YggdrasilPlugin {
 
     private String smtpServer;
