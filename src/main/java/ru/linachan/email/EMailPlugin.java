@@ -21,6 +21,8 @@ public class EMailPlugin implements YggdrasilPlugin {
     private Boolean smtpSSL;
     private Boolean smtpAuth;
 
+    private Boolean sessionDebug;
+
     private String emailUser;
     private String emailPassword;
 
@@ -32,6 +34,7 @@ public class EMailPlugin implements YggdrasilPlugin {
         smtpSSL = core.getConfig().getBoolean("email.smtp.auth", true);
         smtpAuth = core.getConfig().getBoolean("email.smtp.ssl", true);
 
+        sessionDebug = core.getConfig().getBoolean("email.debug", false);
 
         emailUser = core.getConfig().getString("email.user", "user@gmail.com");
         emailPassword = core.getConfig().getString("email.password", "password");
@@ -88,7 +91,7 @@ public class EMailPlugin implements YggdrasilPlugin {
             }
         });
 
-        session.setDebug(true);
+        session.setDebug(sessionDebug);
 
         Transport transport = session.getTransport("smtp");
         transport.connect(smtpServer, emailUser, emailPassword);

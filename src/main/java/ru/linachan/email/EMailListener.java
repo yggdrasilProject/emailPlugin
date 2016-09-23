@@ -18,6 +18,8 @@ public class EMailListener implements YggdrasilRunnable {
     private String emailUser;
     private String emailPassword;
 
+    private Boolean sessionDebug;
+
     private static Logger logger = LoggerFactory.getLogger(EMailListener.class);
 
     public EMailListener() {
@@ -26,10 +28,14 @@ public class EMailListener implements YggdrasilRunnable {
 
         emailUser = core.getConfig().getString("email.user", "user@gmail.com");
         emailPassword = core.getConfig().getString("email.password", "password");
+
+        sessionDebug = core.getConfig().getBoolean("email.debug", false);
     }
 
     private void receiveMessages() throws MessagingException {
         Session session = Session.getInstance(new Properties());
+
+        session.setDebug(sessionDebug);
 
         Store store = session.getStore(emailProtocol);
         store.connect(emailServer, emailUser, emailPassword);
