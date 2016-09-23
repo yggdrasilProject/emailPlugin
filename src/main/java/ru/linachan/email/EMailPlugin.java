@@ -6,6 +6,9 @@ import ru.linachan.yggdrasil.plugin.helpers.Plugin;
 import ru.linachan.yggdrasil.scheduler.YggdrasilTask;
 
 import javax.mail.*;
+import javax.mail.internet.AddressException;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeMessage;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -49,6 +52,24 @@ public class EMailPlugin implements YggdrasilPlugin {
 
     public void sendMessage(Message message) throws MessagingException {
         sendMessage(message, message.getAllRecipients());
+    }
+
+    public Message newMessage(String subject, Address[] recipients) throws MessagingException {
+        Session session = Session.getDefaultInstance(new Properties());
+        Message message = new MimeMessage(session);
+
+        Address fromAddress = new InternetAddress(emailUser);
+
+        message.setFrom(fromAddress);
+        message.setReplyTo(new Address[] { fromAddress });
+
+        for (Address recipient: recipients) {
+            message.addRecipient(Message.RecipientType.TO, recipient);
+        }
+
+        message.setSubject(subject);
+
+        return message;
     }
 
     public void sendMessage(Message message, Address[] recipients) throws MessagingException {
