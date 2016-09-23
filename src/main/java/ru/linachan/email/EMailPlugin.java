@@ -1,12 +1,10 @@
 package ru.linachan.email;
 
-import ru.linachan.yggdrasil.YggdrasilCore;
 import ru.linachan.yggdrasil.plugin.YggdrasilPlugin;
 import ru.linachan.yggdrasil.plugin.helpers.Plugin;
 import ru.linachan.yggdrasil.scheduler.YggdrasilTask;
 
 import javax.mail.*;
-import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 import java.util.HashMap;
@@ -20,6 +18,8 @@ import java.util.regex.Pattern;
 public class EMailPlugin implements YggdrasilPlugin {
 
     private String smtpServer;
+    private Boolean smtpSSL;
+    private Boolean smtpAuth;
 
     private String emailUser;
     private String emailPassword;
@@ -29,6 +29,9 @@ public class EMailPlugin implements YggdrasilPlugin {
     @Override
     public void onInit() {
         smtpServer = core.getConfig().getString("email.smtp.host", "smtp.gmail.com");
+        smtpSSL = core.getConfig().getBoolean("email.smtp.auth", true);
+        smtpAuth = core.getConfig().getBoolean("email.smtp.ssl", true);
+
 
         emailUser = core.getConfig().getString("email.user", "user@gmail.com");
         emailPassword = core.getConfig().getString("email.password", "password");
@@ -55,7 +58,7 @@ public class EMailPlugin implements YggdrasilPlugin {
     }
 
     public Message newMessage(String subject, Address[] recipients) throws MessagingException {
-        Session session = Session.getDefaultInstance(new Properties());
+        Session session = Session.getInstance(new Properties());
         Message message = new MimeMessage(session);
 
         Address fromAddress = new InternetAddress(emailUser);
@@ -73,12 +76,19 @@ public class EMailPlugin implements YggdrasilPlugin {
     }
 
     public void sendMessage(Message message, Address[] recipients) throws MessagingException {
-        Session session = Session.getDefaultInstance(new Properties(), new Authenticator() {
+        Properties properties = new Properties();
+
+        properties.setProperty("mail.smtp.auth", smtpAuth.toString());
+        properties.setProperty("mail.smtp.starttls.enable", smtpSSL.toString());
+
+        Session session = Session.getInstance(properties, new Authenticator() {
             @Override
             protected PasswordAuthentication getPasswordAuthentication() {
-                return new PasswordAuthentication(emailUser, emailPassword);
+            return new PasswordAuthentication(emailUser, emailPassword);
             }
         });
+
+        session.setDebug(true);
 
         Transport transport = session.getTransport("smtp");
         transport.connect(smtpServer, emailUser, emailPassword);

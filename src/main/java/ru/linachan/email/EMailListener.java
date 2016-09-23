@@ -29,7 +29,7 @@ public class EMailListener implements YggdrasilRunnable {
     }
 
     private void receiveMessages() throws MessagingException {
-        Session session = Session.getDefaultInstance(new Properties());
+        Session session = Session.getInstance(new Properties());
 
         Store store = session.getStore(emailProtocol);
         store.connect(emailServer, emailUser, emailPassword);
